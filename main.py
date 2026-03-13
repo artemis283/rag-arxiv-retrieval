@@ -1,5 +1,6 @@
 import zipfile
 from pathlib import Path
+from latex_retriever import download_arxiv_paper
 
 
 def extract_and_list_papers(zip_path: str = "rag_dataset.zip", output_dir: str = "fixtures") -> list[str]:
@@ -25,8 +26,17 @@ def extract_and_list_papers(zip_path: str = "rag_dataset.zip", output_dir: str =
 
 
 def main():
-    extract_and_list_papers()
+    paper_ids = extract_and_list_papers()
+
+    print(f"\nDownloading latex files for {len(paper_ids)} papers...")
+    for arxiv_id in paper_ids:
+        try:
+            download_arxiv_paper(arxiv_id)
+            print(f"  ✓ Downloaded {arxiv_id}")
+        except Exception as e:
+            print(f"  ✗ Failed to download {arxiv_id}: {e}")
 
 
 if __name__ == "__main__":
     main()
+
