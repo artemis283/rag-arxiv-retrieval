@@ -1,13 +1,14 @@
 import psycopg2
 from chunker import get_transformer_model
+import os
 
 # --- CONFIG ---
 DB_CONFIG = {
-    "host": "127.0.0.1",
-    "port": 5433,
-    "dbname": "postgres",
-    "user": "postgres",
-    "password": "postgres"
+    'host': os.environ.get('DB_HOST', 'localhost'),
+    'port': int(os.environ.get('DB_PORT', 5433)),
+    'dbname': 'postgres',
+    'user': 'postgres',
+    'password': 'postgres',
 }
 
 # --- CONNECT DB ---

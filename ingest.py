@@ -1,17 +1,17 @@
 import psycopg2
 from pathlib import Path
 from chunker import chunk_by_section, get_transformer_model
+import os
 
-LATEX_DIR = Path('fixtures/latex/2603.01399v1')
+LATEX_DIR = Path('fixtures/latex')
 
 DB_CONFIG = {
-    'host': 'localhost',
-    'port': 5433,
+    'host': os.environ.get('DB_HOST', 'localhost'),
+    'port': int(os.environ.get('DB_PORT', 5433)),
     'dbname': 'postgres',
     'user': 'postgres',
-    'password': 'postgres',  # update if different
+    'password': 'postgres',
 }
-
 
 def get_connection():
     return psycopg2.connect(**DB_CONFIG)
@@ -29,7 +29,6 @@ def ingest_paper(conn, paper_dir: Path):
     model = get_transformer_model()
     cur = conn.cursor()
 
-    # Insert paper record (skip if already exists)
     cur.execute(
         """
         INSERT INTO papers (arxiv_id, title)
@@ -37,7 +36,7 @@ def ingest_paper(conn, paper_dir: Path):
         ON CONFLICT (arxiv_id) DO NOTHING
         RETURNING id
         """,
-        (arxiv_id, chunks[0]['section']),  # use first section as rough title
+        (arxiv_id, chunks[0]['section']),
     )
     row = cur.fetchone()
 
@@ -48,7 +47,6 @@ def ingest_paper(conn, paper_dir: Path):
 
     paper_id = row[0]
 
-    # Embed and insert each chunk
     texts = [c['text'] for c in chunks]
     embeddings = model.encode(texts, show_progress_bar=False)
 
@@ -69,12 +67,16 @@ def ingest_paper(conn, paper_dir: Path):
 def main():
     conn = get_connection()
 
-    print(f"Processing {LATEX_DIR.name}...")
-    try:
-        ingest_paper(conn, LATEX_DIR)
-    except Exception as e:
-        print(f"  Error: {e}")
-        conn.rollback()
+    paper_dirs = sorted(p for p in LATEX_DIR.iterdir() if p.is_dir())
+    print(f"Found {len(paper_dirs)} papers to ingest.\n")
+
+    for paper_dir in paper_dirs:
+        print(f"Processing {paper_dir.name}...")
+        try:
+            ingest_paper(conn, paper_dir)
+        except Exception as e:
+            print(f"  Error: {e}")
+            conn.rollback()
 
     conn.close()
     print("\nDone!")
