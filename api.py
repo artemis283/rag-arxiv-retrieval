@@ -24,8 +24,8 @@ def search(
     q: str = Query(..., description="Search query"),
     top_k: int = 5,
     author: Optional[str] = None,
-    after: Optional[str] = None,  # YYYY-MM-DD
-    before: Optional[str] = None,  # YYYY-MM-DD
+    after: Optional[str] = None,
+    before: Optional[str] = None,
 ):
     model = get_transformer_model()
     query_embedding = model.encode(q).tolist()
@@ -35,35 +35,32 @@ def search(
 
     cur.execute("SET ivfflat.probes = 3")
 
-    # Build dynamic query with optional filters
     filters = []
-    params = [query_embedding, query_embedding]
+    params = {"emb": query_embedding, "top_k": top_k}
 
     if author:
-        filters.append("%s = ANY(p.authors)")
-        params.append(author)
+        filters.append("%(author)s = ANY(p.authors)")
+        params["author"] = author
     if after:
-        filters.append("p.published >= %s")
-        params.append(after)
+        filters.append("p.published >= %(after)s::date")
+        params["after"] = after
     if before:
-        filters.append("p.published <= %s")
-        params.append(before)
+        filters.append("p.published <= %(before)s::date")
+        params["before"] = before
 
     where_clause = ""
     if filters:
         where_clause = "WHERE " + " AND ".join(filters)
 
-    params.append(top_k)
-
     cur.execute(
         f"""
-        SELECT c.section, c.content, 1 - (c.embedding <=> %s::vector) AS similarity,
+        SELECT c.section, c.content, 1 - (c.embedding <=> %(emb)s::vector) AS similarity,
                p.arxiv_id, p.title, p.authors, p.published
         FROM chunks c
         JOIN papers p ON c.paper_id = p.id
         {where_clause}
-        ORDER BY c.embedding <=> %s::vector
-        LIMIT %s
+        ORDER BY c.embedding <=> %(emb)s::vector
+        LIMIT %(top_k)s
         """,
         params,
     )
