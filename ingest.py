@@ -1,86 +1,80 @@
 import psycopg2
 from pathlib import Path
 from chunker import chunk_by_section, get_transformer_model
+from metadata_fetcher import fetch_metadata
 import os
-
-LATEX_DIR = Path('fixtures/latex')
+import time
 
 DB_CONFIG = {
-    'host': os.environ.get('DB_HOST', 'localhost'),
-    'port': int(os.environ.get('DB_PORT', 5433)),
-    'dbname': 'postgres',
-    'user': 'postgres',
-    'password': 'postgres',
+    "host": os.environ.get("DB_HOST", "localhost"),
+    "port": int(os.environ.get("DB_PORT", 5433)),
+    "dbname": "postgres",
+    "user": "postgres",
+    "password": "postgres",
 }
 
-def get_connection():
-    return psycopg2.connect(**DB_CONFIG)
+conn = psycopg2.connect(**DB_CONFIG)
+cur = conn.cursor()
 
+model = get_transformer_model()
 
-def ingest_paper(conn, paper_dir: Path):
-    """Chunk a paper, embed it, and store in Postgres."""
+papers_dir = Path("fixtures/latex")
+
+for paper_dir in sorted(papers_dir.iterdir()):
+    if not paper_dir.is_dir():
+        continue
     arxiv_id = paper_dir.name
-    chunks = chunk_by_section(paper_dir)
+    print(f"Processing {arxiv_id}...")
 
+    chunks = chunk_by_section(paper_dir)
     if not chunks:
         print(f"  Skipping {arxiv_id} — no chunks found")
-        return
+        continue
 
-    model = get_transformer_model()
-    cur = conn.cursor()
+    try:
+        # Fetch metadata from arXiv API
+        meta = fetch_metadata(arxiv_id)
+        title = meta.get("title", "Unknown")
+        authors = meta.get("authors", [])
+        published = meta.get("published", None)
+        abstract = meta.get("abstract", None)
+        time.sleep(0.5)  # Rate limit
 
-    cur.execute(
-        """
-        INSERT INTO papers (arxiv_id, title)
-        VALUES (%s, %s)
-        ON CONFLICT (arxiv_id) DO NOTHING
-        RETURNING id
-        """,
-        (arxiv_id, chunks[0]['section']),
-    )
-    row = cur.fetchone()
-
-    if row is None:
-        print(f"  Skipping {arxiv_id} — already ingested")
-        cur.close()
-        return
-
-    paper_id = row[0]
-
-    texts = [c['text'] for c in chunks]
-    embeddings = model.encode(texts, show_progress_bar=False)
-
-    for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
         cur.execute(
             """
-            INSERT INTO chunks (paper_id, section, chunk_index, content, embedding)
+            INSERT INTO papers (arxiv_id, title, authors, published, abstract)
             VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (arxiv_id) DO UPDATE
+            SET title = EXCLUDED.title,
+                authors = EXCLUDED.authors,
+                published = EXCLUDED.published,
+                abstract = EXCLUDED.abstract
+            RETURNING id
             """,
-            (paper_id, chunk['section'], i, chunk['text'], embedding.tolist()),
+            (arxiv_id, title, authors, published, abstract),
         )
+        paper_id = cur.fetchone()[0]
 
-    conn.commit()
-    cur.close()
-    print(f"  Ingested {arxiv_id} — {len(chunks)} chunks")
+        # Delete old chunks for this paper (in case of re-ingest)
+        cur.execute("DELETE FROM chunks WHERE paper_id = %s", (paper_id,))
 
+        for i, chunk in enumerate(chunks):
+            embedding = model.encode(chunk["text"]).tolist()
+            cur.execute(
+                """
+                INSERT INTO chunks (paper_id, section, chunk_index, content, embedding)
+                VALUES (%s, %s, %s, %s, %s::vector)
+                """,
+                (paper_id, chunk["section"], i, chunk["text"], embedding),
+            )
 
-def main():
-    conn = get_connection()
+        conn.commit()
+        print(f"  Ingested {arxiv_id} — {len(chunks)} chunks | {title[:60]}")
 
-    paper_dirs = sorted(p for p in LATEX_DIR.iterdir() if p.is_dir())
-    print(f"Found {len(paper_dirs)} papers to ingest.\n")
+    except Exception as e:
+        conn.rollback()
+        print(f"  Error: {e}")
 
-    for paper_dir in paper_dirs:
-        print(f"Processing {paper_dir.name}...")
-        try:
-            ingest_paper(conn, paper_dir)
-        except Exception as e:
-            print(f"  Error: {e}")
-            conn.rollback()
-
-    conn.close()
-    print("\nDone!")
-
-
-if __name__ == "__main__":
-    main()
+cur.close()
+conn.close()
+print("\nDone!")

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Query
 from chunker import get_transformer_model
+from typing import Optional
 import psycopg2
 import os
 
@@ -19,25 +20,52 @@ def get_connection():
 
 
 @app.get("/search")
-def search(q: str = Query(..., description="Search query"), top_k: int = 5):
+def search(
+    q: str = Query(..., description="Search query"),
+    top_k: int = 5,
+    author: Optional[str] = None,
+    after: Optional[str] = None,  # YYYY-MM-DD
+    before: Optional[str] = None,  # YYYY-MM-DD
+):
     model = get_transformer_model()
     query_embedding = model.encode(q).tolist()
 
     conn = get_connection()
     cur = conn.cursor()
 
-    # Set number of clusters to probe 
     cur.execute("SET ivfflat.probes = 3")
 
+    # Build dynamic query with optional filters
+    filters = []
+    params = [query_embedding, query_embedding]
+
+    if author:
+        filters.append("%s = ANY(p.authors)")
+        params.append(author)
+    if after:
+        filters.append("p.published >= %s")
+        params.append(after)
+    if before:
+        filters.append("p.published <= %s")
+        params.append(before)
+
+    where_clause = ""
+    if filters:
+        where_clause = "WHERE " + " AND ".join(filters)
+
+    params.append(top_k)
+
     cur.execute(
-        """
-        SELECT c.section, c.content, 1 - (c.embedding <=> %s::vector) AS similarity, p.arxiv_id
+        f"""
+        SELECT c.section, c.content, 1 - (c.embedding <=> %s::vector) AS similarity,
+               p.arxiv_id, p.title, p.authors, p.published
         FROM chunks c
         JOIN papers p ON c.paper_id = p.id
+        {where_clause}
         ORDER BY c.embedding <=> %s::vector
         LIMIT %s
         """,
-        (query_embedding, query_embedding, top_k),
+        params,
     )
     results = [
         {
@@ -45,12 +73,34 @@ def search(q: str = Query(..., description="Search query"), top_k: int = 5):
             "content": row[1][:500],
             "similarity": round(float(row[2]), 4),
             "arxiv_id": row[3],
+            "title": row[4],
+            "authors": row[5],
+            "published": str(row[6]) if row[6] else None,
         }
         for row in cur.fetchall()
     ]
     cur.close()
     conn.close()
-    return {"query": q, "results": results}
+    return {"query": q, "filters": {"author": author, "after": after, "before": before}, "results": results}
+
+
+@app.get("/papers")
+def list_papers():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT arxiv_id, title, authors, published FROM papers ORDER BY published DESC")
+    papers = [
+        {
+            "arxiv_id": row[0],
+            "title": row[1],
+            "authors": row[2],
+            "published": str(row[3]) if row[3] else None,
+        }
+        for row in cur.fetchall()
+    ]
+    cur.close()
+    conn.close()
+    return {"papers": papers}
 
 
 @app.get("/health")
