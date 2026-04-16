@@ -4,6 +4,9 @@ from generator import generate_cited_answer
 from typing import Optional
 import psycopg2
 import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 
 app = FastAPI(title="RAG ArXiv Retrieval API")
 
@@ -143,3 +146,9 @@ def list_papers():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.get("/")
+def root():
+    return FileResponse("static/index.html")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
