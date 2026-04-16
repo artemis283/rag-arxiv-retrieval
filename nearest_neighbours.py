@@ -2,6 +2,8 @@ from sklearn.cluster import KMeans
 import numpy as np
 import time
 
+### Learning about nearest neighbours so I can apply it to the RAG system.
+
 def normalise(vectors):
     norms = np.linalg.norm(vectors, axis=1, keepdims=True)
     return vectors / norms
