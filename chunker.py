@@ -137,6 +137,8 @@ def chunk_by_section(paper_dir: Path) -> list[dict]:
                 current_section = section_match.group(1)
             else:
                 cleaned = strip_latex_commands(part)
+                cleaned = cleaned.replace('\x00', '')  # add this line
+
                 if cleaned and len(cleaned) > 100:  # raised threshold to skip junk
                     chunks.append({
                         "section": current_section,

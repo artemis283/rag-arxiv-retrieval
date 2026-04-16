@@ -1,0 +1,6 @@
+fixtures/
+model_cache/
+.venv/
+__pycache__/
+*.zip
+.git/
