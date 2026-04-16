@@ -22,6 +22,8 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 5432
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
 
 volumes:
   pgdata:

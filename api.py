@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Query
 from chunker import get_transformer_model
+from generator import generate_cited_answer
 from typing import Optional
 import psycopg2
 import os
@@ -19,17 +20,8 @@ def get_connection():
     return psycopg2.connect(**DB_CONFIG)
 
 
-@app.get("/search")
-def search(
-    q: str = Query(..., description="Search query"),
-    top_k: int = 5,
-    author: Optional[str] = None,
-    after: Optional[str] = None,
-    before: Optional[str] = None,
-):
-    model = get_transformer_model()
-    query_embedding = model.encode(q).tolist()
-
+def retrieve_chunks(query_embedding, top_k, author=None, after=None, before=None):
+    """Shared retrieval logic for /search and /ask."""
     conn = get_connection()
     cur = conn.cursor()
 
@@ -78,7 +70,55 @@ def search(
     ]
     cur.close()
     conn.close()
+    return results
+
+
+@app.get("/search")
+def search(
+    q: str = Query(..., description="Search query"),
+    top_k: int = 5,
+    author: Optional[str] = None,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+):
+    model = get_transformer_model()
+    query_embedding = model.encode(q).tolist()
+    results = retrieve_chunks(query_embedding, top_k, author, after, before)
     return {"query": q, "filters": {"author": author, "after": after, "before": before}, "results": results}
+
+
+@app.get("/ask")
+def ask(
+    q: str = Query(..., description="Your question"),
+    top_k: int = 5,
+    author: Optional[str] = None,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+):
+    model = get_transformer_model()
+    query_embedding = model.encode(q).tolist()
+    chunks = retrieve_chunks(query_embedding, top_k, author, after, before)
+
+    generation = generate_cited_answer(q, chunks)
+
+    references = [
+        {
+            "ref": f"[{i}]",
+            "arxiv_id": c["arxiv_id"],
+            "title": c["title"],
+            "section": c["section"],
+            "similarity": c["similarity"],
+        }
+        for i, c in enumerate(chunks, 1)
+    ]
+
+    return {
+        "query": q,
+        "answer": generation["answer"],
+        "references": references,
+        "model": generation["model"],
+        "tokens_used": generation["tokens_used"],
+    }
 
 
 @app.get("/papers")
