@@ -3,4 +3,4 @@ fixtures/
 __pycache__/
 .venv/
 *.pyc
-model_cache/
+model_cache/rag_dataset.zip
