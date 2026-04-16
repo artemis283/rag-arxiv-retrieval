@@ -17,11 +17,9 @@ services:
       - db
     volumes:
       - ./fixtures:/app/fixtures
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
-      DB_HOST: host.docker.internal
-      DB_PORT: 5433
+      DB_HOST: db
+      DB_PORT: 5432
 
 volumes:
   pgdata:
