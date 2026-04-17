@@ -1,0 +1,512 @@
+[
+  {
+    "query": "What is asymmetric quantization?",
+    "difficulty": "easy",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2602.23200v1",
+        "section": "Asymmetric and Symmetric Quantization",
+        "similarity": 0.5343
+      },
+      {
+        "arxiv_id": "2602.23200v1",
+        "section": "Hybrid Quantization",
+        "similarity": 0.509
+      }
+    ],
+    "num_relevant": 2
+  },
+  {
+    "query": "How does speculative decoding work?",
+    "difficulty": "easy",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.08088v1",
+        "section": "Background",
+        "similarity": 0.6031
+      },
+      {
+        "arxiv_id": "2603.01399v1",
+        "section": "Speculative Decoding Paradigm",
+        "similarity": 0.5946
+      },
+      {
+        "arxiv_id": "2603.03251v1",
+        "section": "Speculative Decoding",
+        "similarity": 0.5809
+      },
+      {
+        "arxiv_id": "2602.23881v1",
+        "section": "Speculative Decoding",
+        "similarity": 0.5701
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What is retrieval-augmented generation?",
+    "difficulty": "easy",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.07379v1",
+        "section": "Taxonomy of Agentic RAG Systems",
+        "similarity": 0.6039
+      },
+      {
+        "arxiv_id": "2603.07379v1",
+        "section": "Introduction",
+        "similarity": 0.593
+      },
+      {
+        "arxiv_id": "2603.07379v1",
+        "section": "Retrieval-Augmented Generation",
+        "similarity": 0.589
+      },
+      {
+        "arxiv_id": "2603.07379v1",
+        "section": "Limitations of Standard RAG Pipelines",
+        "similarity": 0.5814
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What is knowledge distillation?",
+    "difficulty": "easy",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2602.23881v1",
+        "section": "Training Methodologies for Draft Models",
+        "similarity": 0.5525
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Stage II: Knowledge Distillation for Post-Pruning Recovery",
+        "similarity": 0.3824
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Knowledge Distillation Recovery",
+        "similarity": 0.3632
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Positioning of Our Work",
+        "similarity": 0.3631
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What is structured pruning?",
+    "difficulty": "easy",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Multi-Axis Pruning",
+        "similarity": 0.5149
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Sheared LLaMA: Targeted Structured Pruning",
+        "similarity": 0.434
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "The Minitron Approach",
+        "similarity": 0.4257
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Related Work",
+        "similarity": 0.4065
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "LLM-Pruner: Task-Agnostic Structural Pruning",
+        "similarity": 0.3981
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Taxonomy of Pruning Methods",
+        "similarity": 0.3718
+      }
+    ],
+    "num_relevant": 6
+  },
+  {
+    "query": "How can you reduce memory usage during LLM inference?",
+    "difficulty": "medium",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.03251v1",
+        "section": "Extended Related Work",
+        "similarity": 0.5832
+      },
+      {
+        "arxiv_id": "2603.04427v1",
+        "section": "Practical Benefit: KV Cache, Not Parameters",
+        "similarity": 0.5611
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Discussion",
+        "similarity": 0.4795
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Stage I: Structured Pruning via Importance-Aware Sensitivity Analysis",
+        "similarity": 0.4762
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What methods exist for compressing key-value pairs in transformers?",
+    "difficulty": "medium",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.04427v1",
+        "section": "Related Work",
+        "similarity": 0.3887
+      },
+      {
+        "arxiv_id": "2603.04427v1",
+        "section": "Experiment 5: Post-Training Compression of GPT-2",
+        "similarity": 0.3644
+      },
+      {
+        "arxiv_id": "2602.23200v1",
+        "section": "KV Cache Quantization",
+        "similarity": 0.315
+      }
+    ],
+    "num_relevant": 3
+  },
+  {
+    "query": "What are the tradeoffs of extreme low-bit quantization?",
+    "difficulty": "medium",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.04162v2",
+        "section": "Overview",
+        "similarity": 0.6503
+      },
+      {
+        "arxiv_id": "2603.04162v2",
+        "section": "Quality Ceiling at Extreme Compression",
+        "similarity": 0.5785
+      },
+      {
+        "arxiv_id": "2602.23200v1",
+        "section": "Hybrid Quantization",
+        "similarity": 0.5446
+      },
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Quantization Performance",
+        "similarity": 0.4804
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "How can draft models be trained for faster decoding?",
+    "difficulty": "medium",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2602.23881v1",
+        "section": "Conclusion",
+        "similarity": 0.7284
+      },
+      {
+        "arxiv_id": "2603.11053v1",
+        "section": "Related Works",
+        "similarity": 0.7188
+      },
+      {
+        "arxiv_id": "2602.23881v1",
+        "section": "Draft Model Architectures",
+        "similarity": 0.7164
+      },
+      {
+        "arxiv_id": "2603.01399v1",
+        "section": "Advancements in Efficient Drafting",
+        "similarity": 0.6507
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What benchmarks exist for evaluating RAG systems?",
+    "difficulty": "medium",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.10765v1",
+        "section": "Benchmarks for RAG Systems",
+        "similarity": 0.55
+      },
+      {
+        "arxiv_id": "2603.07379v1",
+        "section": "From Static Benchmarks to Evaluation Frameworks",
+        "similarity": 0.541
+      },
+      {
+        "arxiv_id": "2603.10765v1",
+        "section": "Benchmark Workloads",
+        "similarity": 0.5112
+      },
+      {
+        "arxiv_id": "2603.10765v1",
+        "section": "Goals of \\pname{",
+        "similarity": 0.4968
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "How do you decide which layers to fine-tune in a large model?",
+    "difficulty": "medium",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2602.04019v2",
+        "section": "Projected residuals",
+        "similarity": 0.4996
+      },
+      {
+        "arxiv_id": "2602.04019v2",
+        "section": "Fine-tuning cost depends on depth",
+        "similarity": 0.482
+      },
+      {
+        "arxiv_id": "2602.04019v2",
+        "section": "Conclusion",
+        "similarity": 0.4151
+      },
+      {
+        "arxiv_id": "2602.04019v2",
+        "section": "Layer card",
+        "similarity": 0.381
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What is the effective attention dimensionality for language modeling?",
+    "difficulty": "hard",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.04427v1",
+        "section": "Scaling of Minimum $\\dselect$",
+        "similarity": 0.6373
+      },
+      {
+        "arxiv_id": "2603.04427v1",
+        "section": "Theoretical Motivation",
+        "similarity": 0.63
+      },
+      {
+        "arxiv_id": "2603.04427v1",
+        "section": "Experiment 3: WikiText-2 Language Modeling",
+        "similarity": 0.6221
+      },
+      {
+        "arxiv_id": "2603.04427v1",
+        "section": "Conclusion",
+        "similarity": 0.5861
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What acceptance rate does LK loss optimise for?",
+    "difficulty": "hard",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2602.23881v1",
+        "section": "Negative Log Acceptance Rate Gradient",
+        "similarity": 0.5941
+      },
+      {
+        "arxiv_id": "2602.23881v1",
+        "section": "Methodology",
+        "similarity": 0.5707
+      },
+      {
+        "arxiv_id": "2602.23881v1",
+        "section": "Evaluation Results",
+        "similarity": 0.5293
+      }
+    ],
+    "num_relevant": 3
+  },
+  {
+    "query": "How does EAGLE-Pangu handle tree attention on Ascend NPUs?",
+    "difficulty": "hard",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.08088v1",
+        "section": "Implementation \\& Evaluation Harness",
+        "similarity": 0.4336
+      },
+      {
+        "arxiv_id": "2603.08088v1",
+        "section": "Problem setting and evaluation perspective",
+        "similarity": 0.345
+      },
+      {
+        "arxiv_id": "2603.08088v1",
+        "section": "Tensor indexing and gather semantics in tree decoding",
+        "similarity": 0.3148
+      },
+      {
+        "arxiv_id": "2603.08088v1",
+        "section": "Fused tree-masked teacher execution on Pangu+Ascend",
+        "similarity": 0.2932
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What is the role of the proximal point in oracle-robust alignment?",
+    "difficulty": "hard",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2602.20457v1",
+        "section": "On the practical role of the proximal point",
+        "similarity": 0.4221
+      },
+      {
+        "arxiv_id": "2602.20457v1",
+        "section": "On the practical role of the proximal point",
+        "similarity": 0.3907
+      },
+      {
+        "arxiv_id": "2602.20457v1",
+        "section": "Practical computation of the proximal point",
+        "similarity": 0.3163
+      }
+    ],
+    "num_relevant": 3
+  },
+  {
+    "query": "How does TaSR-RAG use taxonomy for structured reasoning?",
+    "difficulty": "hard",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.09341v1",
+        "section": "Overview",
+        "similarity": 0.5879
+      },
+      {
+        "arxiv_id": "2603.09341v1",
+        "section": "Case Study",
+        "similarity": 0.563
+      },
+      {
+        "arxiv_id": "2603.09341v1",
+        "section": "Design Motivation",
+        "similarity": 0.5517
+      },
+      {
+        "arxiv_id": "2603.09341v1",
+        "section": "Taxonomy-Guided Entity Typing",
+        "similarity": 0.4695
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What sparsity levels were tested in optimal expert-attention allocation?",
+    "difficulty": "hard",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.10379v1",
+        "section": "Summary: An Empirical Law for Optimal Allocation",
+        "similarity": 0.6391
+      },
+      {
+        "arxiv_id": "2603.10379v1",
+        "section": "Sparsity-Dependent Scaling Coefficients",
+        "similarity": 0.6325
+      },
+      {
+        "arxiv_id": "2603.10379v1",
+        "section": "Empirical Scaling Behavior of the Optimal Compute Allocation",
+        "similarity": 0.621
+      },
+      {
+        "arxiv_id": "2603.10379v1",
+        "section": "Selection Strategy for the Optimal Point $r^*$",
+        "similarity": 0.6009
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "What is the difference between weight-only and weight-activation quantization?",
+    "difficulty": "medium",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.11881v1",
+        "section": "Quantization Performance",
+        "similarity": 0.4447
+      },
+      {
+        "arxiv_id": "2603.00364v1",
+        "section": "Activation-Aware Weight Quantization",
+        "similarity": 0.418
+      }
+    ],
+    "num_relevant": 2
+  },
+  {
+    "query": "How does Quasar accelerate the verification phase of speculative decoding?",
+    "difficulty": "hard",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2603.01399v1",
+        "section": "Accuracy Evaluation (RQ4)",
+        "similarity": 0.5602
+      },
+      {
+        "arxiv_id": "2603.01399v1",
+        "section": "Methodology",
+        "similarity": 0.5332
+      },
+      {
+        "arxiv_id": "2603.01399v1",
+        "section": "Conclusion and Future Work",
+        "similarity": 0.5008
+      },
+      {
+        "arxiv_id": "2603.01399v1",
+        "section": "Discussion",
+        "similarity": 0.4904
+      }
+    ],
+    "num_relevant": 4
+  },
+  {
+    "query": "How does per-channel normalization improve KV cache quantization?",
+    "difficulty": "hard",
+    "relevant_chunks": [
+      {
+        "arxiv_id": "2602.23200v1",
+        "section": "Per-channel Normalization of $K$",
+        "similarity": 0.5658
+      },
+      {
+        "arxiv_id": "2602.23200v1",
+        "section": "Related Work",
+        "similarity": 0.5151
+      },
+      {
+        "arxiv_id": "2602.23200v1",
+        "section": "KV Cache Quantization",
+        "similarity": 0.4841
+      }
+    ],
+    "num_relevant": 3
+  }
+]
