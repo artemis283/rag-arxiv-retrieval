@@ -1,12 +1,25 @@
 from fastapi import FastAPI, Query
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from chunker import get_transformer_model
 from generator import generate_cited_answer
 from typing import Optional
 import psycopg2
 import os
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+import logging
+import json
+from datetime import datetime
 
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("query_logs.jsonl"),
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="RAG ArXiv Retrieval API")
 
@@ -23,8 +36,15 @@ def get_connection():
     return psycopg2.connect(**DB_CONFIG)
 
 
+def log_query(entry: dict):
+    """Append a structured log entry to the JSONL file."""
+    entry["timestamp"] = datetime.utcnow().isoformat()
+    with open("query_logs.jsonl", "a") as f:
+        f.write(json.dumps(entry) + "\n")
+    logger.info(json.dumps(entry, indent=2))
+
+
 def retrieve_chunks(query_embedding, top_k, author=None, after=None, before=None):
-    """Shared retrieval logic for /search and /ask."""
     conn = get_connection()
     cur = conn.cursor()
 
@@ -87,6 +107,17 @@ def search(
     model = get_transformer_model()
     query_embedding = model.encode(q).tolist()
     results = retrieve_chunks(query_embedding, top_k, author, after, before)
+
+    log_query({
+        "endpoint": "/search",
+        "query": q,
+        "filters": {"author": author, "after": after, "before": before},
+        "top_k": top_k,
+        "num_results": len(results),
+        "top_similarities": [r["similarity"] for r in results],
+        "retrieved_papers": [{"arxiv_id": r["arxiv_id"], "section": r["section"]} for r in results],
+    })
+
     return {"query": q, "filters": {"author": author, "after": after, "before": before}, "results": results}
 
 
@@ -115,6 +146,26 @@ def ask(
         for i, c in enumerate(chunks, 1)
     ]
 
+    # Build the prompt that was sent to the LLM (for debugging)
+    context_sent = ""
+    for i, chunk in enumerate(chunks, 1):
+        context_sent += f"[{i}] (Paper: {chunk['arxiv_id']}, Section: {chunk['section']})\n"
+        context_sent += f"{chunk['content']}\n\n"
+
+    log_query({
+        "endpoint": "/ask",
+        "query": q,
+        "filters": {"author": author, "after": after, "before": before},
+        "top_k": top_k,
+        "num_results": len(chunks),
+        "top_similarities": [c["similarity"] for c in chunks],
+        "retrieved_papers": [{"arxiv_id": c["arxiv_id"], "section": c["section"]} for c in chunks],
+        "context_sent_to_llm": context_sent,
+        "llm_answer": generation["answer"],
+        "model": generation["model"],
+        "tokens_used": generation["tokens_used"],
+    })
+
     return {
         "query": q,
         "answer": generation["answer"],
@@ -122,6 +173,18 @@ def ask(
         "model": generation["model"],
         "tokens_used": generation["tokens_used"],
     }
+
+
+@app.get("/logs")
+def get_logs(n: int = 20):
+    """View the last n query logs."""
+    try:
+        with open("query_logs.jsonl", "r") as f:
+            lines = f.readlines()
+        entries = [json.loads(line) for line in lines[-n:]]
+        return {"total_logs": len(lines), "showing": len(entries), "logs": entries}
+    except FileNotFoundError:
+        return {"total_logs": 0, "showing": 0, "logs": []}
 
 
 @app.get("/papers")
@@ -147,8 +210,10 @@ def list_papers():
 def health():
     return {"status": "ok"}
 
+
 @app.get("/")
 def root():
     return FileResponse("static/index.html")
+
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
