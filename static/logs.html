@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Logs</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, sans-serif; background: #0a0a0a; color: #e0e0e0; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+        h1 { font-size: 1.8rem; margin-bottom: 0.3rem; color: #fff; }
+        .subtitle { color: #888; margin-bottom: 2rem; font-size: 0.9rem; }
+        .back { color: #4a9eff; text-decoration: none; font-size: 0.9rem; }
+        .log-entry { background: #1a1a1a; border: 1px solid #222; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.2rem; }
+        .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .log-endpoint { background: #4a9eff; color: #fff; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .log-endpoint.search { background: #22c55e; }
+        .log-time { color: #666; font-size: 0.8rem; }
+        .log-query { font-size: 1.1rem; color: #fff; margin-bottom: 0.8rem; font-weight: 500; }
+        .log-section { margin-bottom: 0.8rem; }
+        .log-section-title { color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+        .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .filter-tag { background: #2a2a2a; border: 1px solid #333; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; color: #aaa; }
+        .similarities { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .sim-bar { display: flex; align-items: center; gap: 0.3rem; }
+        .sim-fill { height: 6px; border-radius: 3px; background: #4a9eff; }
+        .sim-val { font-size: 0.75rem; color: #888; }
+        .retrieved { display: flex; flex-direction: column; gap: 0.3rem; }
+        .retrieved-paper { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+        .retrieved-ref { color: #4a9eff; font-weight: bold; font-size: 0.8rem; }
+        .retrieved-id a { color: #4a9eff; text-decoration: none; }
+        .retrieved-section { color: #888; }
+        .context-toggle { color: #4a9eff; cursor: pointer; font-size: 0.85rem; background: none; border: 1px solid #333; padding: 0.3rem 0.8rem; border-radius: 6px; margin-top: 0.5rem; }
+        .context-box { display: none; background: #111; border: 1px solid #222; border-radius: 6px; padding: 1rem; margin-top: 0.5rem; font-size: 0.8rem; line-height: 1.6; color: #aaa; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+        .answer-box { background: #111; border: 1px solid #222; border-radius: 6px; padding: 1rem; font-size: 0.9rem; line-height: 1.6; color: #ccc; }
+        .log-meta { display: flex; gap: 1rem; color: #555; font-size: 0.75rem; margin-top: 0.5rem; }
+        .empty { text-align: center; padding: 3rem; color: #555; }
+    </style>
+</head>
+<body>
+    <a href="/" class="back">← Back to search</a>
+    <h1>📋 Query Logs</h1>
+    <p class="subtitle">Diagnostic view — what was retrieved and sent to the model for each query</p>
+
+    <div id="logs"></div>
+
+    <script>
+        async function loadLogs() {
+            const res = await fetch('/logs?n=50');
+            const data = await res.json();
+            const container = document.getElementById('logs');
+
+            if (data.logs.length === 0) {
+                container.innerHTML = '<div class="empty">No queries logged yet.</div>';
+                return;
+            }
+
+            // Show newest first
+            const logs = data.logs.reverse();
+
+            container.innerHTML = logs.map((log, idx) => {
+                const isAsk = log.endpoint === '/ask';
+                const time = new Date(log.timestamp).toLocaleString();
+                const activeFilters = Object.entries(log.filters || {})
+                    .filter(([k, v]) => v)
+                    .map(([k, v]) => `<span class="filter-tag">${k}: ${v}</span>`)
+                    .join('') || '<span class="filter-tag">none</span>';
+
+                const similarities = (log.top_similarities || []).map((s, i) => {
+                    const width = Math.max(s * 200, 10);
+                    return `<div class="sim-bar">
+                        <span class="sim-val">[${i + 1}]</span>
+                        <div class="sim-fill" style="width:${width}px;opacity:${0.4 + s}"></div>
+                        <span class="sim-val">${(s * 100).toFixed(1)}%</span>
+                    </div>`;
+                }).join('');
+
+                const papers = (log.retrieved_papers || []).map((p, i) => {
+                    return `<div class="retrieved-paper">
+                        <span class="retrieved-ref">[${i + 1}]</span>
+                        <span class="retrieved-id"><a href="https://arxiv.org/abs/${p.arxiv_id}" target="_blank">${p.arxiv_id}</a></span>
+                        <span class="retrieved-section">§ ${p.section}</span>
+                    </div>`;
+                }).join('');
+
+                const contextId = `context-${idx}`;
+                const contextSection = log.context_sent_to_llm ? `
+                    <div class="log-section">
+                        <div class="log-section-title">Context sent to LLM</div>
+                        <button class="context-toggle" onclick="document.getElementById('${contextId}').style.display = document.getElementById('${contextId}').style.display === 'block' ? 'none' : 'block'">
+                            Show/Hide Context
+                        </button>
+                        <div class="context-box" id="${contextId}">${log.context_sent_to_llm}</div>
+                    </div>
+                ` : '';
+
+                const answerSection = log.llm_answer ? `
+                    <div class="log-section">
+                        <div class="log-section-title">Generated Answer</div>
+                        <div class="answer-box">${log.llm_answer}</div>
+                        <div class="log-meta">
+                            <span>Model: ${log.model}</span>
+                            <span>Tokens: ${log.tokens_used}</span>
+                        </div>
+                    </div>
+                ` : '';
+
+                return `
+                    <div class="log-entry">
+                        <div class="log-header">
+                            <span class="log-endpoint ${isAsk ? '' : 'search'}">${log.endpoint}</span>
+                            <span class="log-time">${time}</span>
+                        </div>
+                        <div class="log-query">"${log.query}"</div>
+                        <div class="log-section">
+                            <div class="log-section-title">Filters</div>
+                            <div class="filters">${activeFilters}</div>
+                        </div>
+                        <div class="log-section">
+                            <div class="log-section-title">Similarity Scores</div>
+                            <div class="similarities">${similarities}</div>
+                        </div>
+                        <div class="log-section">
+                            <div class="log-section-title">Retrieved Chunks (${log.num_results})</div>
+                            <div class="retrieved">${papers}</div>
+                        </div>
+                        ${contextSection}
+                        ${answerSection}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        loadLogs();
+    </script>
+</body>
+</html>

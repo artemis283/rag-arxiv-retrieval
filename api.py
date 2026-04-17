@@ -196,6 +196,11 @@ def get_logs(n: int = 20):
         return {"total_logs": 0, "showing": 0, "logs": []}
 
 
+@app.get("/logs/view")
+def logs_view():
+    return FileResponse("static/logs.html")
+
+
 @app.get("/papers")
 def list_papers():
     conn = get_connection()
