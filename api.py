@@ -13,6 +13,8 @@ from datetime import datetime
 # Set up logging
 LOG_FILE = "logs/query_logs.jsonl"
 
+os.makedirs("logs", exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
