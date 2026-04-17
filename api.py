@@ -11,11 +11,12 @@ import json
 from datetime import datetime
 
 # Set up logging
+LOG_FILE = "logs/query_logs.jsonl"
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("query_logs.jsonl"),
         logging.StreamHandler(),
     ],
 )
@@ -39,9 +40,10 @@ def get_connection():
 def log_query(entry: dict):
     """Append a structured log entry to the JSONL file."""
     entry["timestamp"] = datetime.utcnow().isoformat()
-    with open("query_logs.jsonl", "a") as f:
+    os.makedirs("logs", exist_ok=True)
+    with open(LOG_FILE, "a") as f:
         f.write(json.dumps(entry) + "\n")
-    logger.info(json.dumps(entry, indent=2))
+    logger.info("Query logged: %s q='%s'", entry["endpoint"], entry["query"])
 
 
 def retrieve_chunks(query_embedding, top_k, author=None, after=None, before=None):
@@ -179,9 +181,16 @@ def ask(
 def get_logs(n: int = 20):
     """View the last n query logs."""
     try:
-        with open("query_logs.jsonl", "r") as f:
+        with open(LOG_FILE, "r") as f:
             lines = f.readlines()
-        entries = [json.loads(line) for line in lines[-n:]]
+        entries = []
+        for line in lines[-n:]:
+            line = line.strip()
+            if line:
+                try:
+                    entries.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
         return {"total_logs": len(lines), "showing": len(entries), "logs": entries}
     except FileNotFoundError:
         return {"total_logs": 0, "showing": 0, "logs": []}
